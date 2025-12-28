@@ -1,9 +1,10 @@
 [project]
-name = "tv-airplay"
-version = "0.1.0"
-description = "Samsung TV Video Caster - Cast videos to your Samsung TV via DLNA/AirPlay"
-readme = "v1/README.md"
+name = "tv-cast"
+version = "1.0.0"
+description = "Samsung TV Video Caster - Cast videos to your Samsung TV via DLNA"
+readme = "README.md"
 requires-python = ">=3.11"
+license = {file = "LICENSE"}
 dependencies = [
     "async-upnp-client>=0.38.0",
     "aiohttp>=3.8.0",
@@ -13,17 +14,24 @@ dependencies = [
     "pillow>=10.0.0",
 ]
 
+[project.scripts]
+tv-cast = "tv_cast.__main__:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["tv_cast"]
+
 [tool.uv]
 dev-dependencies = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
 ]
-
-# This project is a collection of scripts, not an installable package
-# No build-system needed

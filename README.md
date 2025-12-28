@@ -1,8 +1,8 @@
-# TV AirPlay
+# TV Cast
 
-Cast videos to your Samsung TV via DLNA/AirPlay.
+Cast videos to your Samsung TV via DLNA.
 
-_Last updated: December 27th, 2025_
+_Last updated: December 28th, 2025_
 
 ## Prerequisites
 
@@ -33,7 +33,7 @@ curl -fsSL https://deno.land/install.sh | sh
 
 ```bash
 # Clone the repo
-git clone <repo-url>
+git clone https://github.com/richanderson/tv_airplay.git
 cd tv_airplay
 
 # Install Python packages
@@ -71,11 +71,14 @@ uv run python tv_cast.py --image photo.jpg
 uv run python tv_cast.py --stop
 ```
 
-### Try It Out
+### Alternative Ways to Run
 
 ```bash
-# Sample YouTube video to test with
-uv run python tv_cast.py "https://youtube.com/watch?v=yvsoeyqCIU8"
+# Run as a module
+uv run python -m tv_cast video.mp4
+
+# After `uv sync`, the command is also available as:
+uv run tv-cast video.mp4
 ```
 
 ### Device Management
@@ -127,6 +130,27 @@ uv run python tv_cast.py
 
 Install all with: `brew bundle`
 
+## Project Structure
+
+```
+tv_airplay/
+├── tv_cast.py           # Entry point (thin wrapper)
+├── tv_cast/             # Main package
+│   ├── __init__.py      # Package metadata
+│   ├── __main__.py      # Module entry point
+│   ├── cli.py           # Command-line interface
+│   ├── config.py        # Configuration management
+│   ├── casting.py       # DLNA video casting
+│   ├── conversion.py    # HLS/ffmpeg conversion
+│   ├── discovery.py     # Device discovery (DLNA, mDNS)
+│   ├── menu.py          # Interactive menus
+│   ├── utils.py         # Helper functions
+│   └── youtube.py       # YouTube downloading
+├── pyproject.toml       # Python dependencies
+├── Brewfile             # System dependencies
+└── README.md
+```
+
 ## Common uv Commands
 
 ```bash
@@ -142,3 +166,7 @@ uv lock --upgrade && uv sync
 # Run any command in the venv
 uv run <command>
 ```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
