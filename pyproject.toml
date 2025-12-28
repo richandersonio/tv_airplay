@@ -1,0 +1,29 @@
+[project]
+name = "tv-airplay"
+version = "0.1.0"
+description = "Samsung TV Video Caster - Cast videos to your Samsung TV via DLNA/AirPlay"
+readme = "v1/README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "async-upnp-client>=0.38.0",
+    "aiohttp>=3.8.0",
+    "yt-dlp>=2024.1.0",
+    "pyatv>=0.14.0",
+    "zeroconf>=0.80.0",
+    "pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+# This project is a collection of scripts, not an installable package
+# No build-system needed
