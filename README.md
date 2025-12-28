@@ -22,8 +22,8 @@ sudo apt install ffmpeg nmap  # Debian/Ubuntu
 ## Setup
 
 ```bash
-git clone https://github.com/richanderson/tv_airplay.git
-cd tv_airplay
+git clone https://github.com/richandersonio/tv_cast.git
+cd tv_cast
 uv sync
 brew bundle  # macOS only
 ```
@@ -77,7 +77,7 @@ uv run python tv_cast.py                        # Interactive menu
 ## Project Structure
 
 ```
-tv_airplay/
+tv_cast/
 ├── tv_cast.py           # Entry point (thin wrapper)
 ├── tv_cast/             # Main package
 │   ├── __init__.py      # Package metadata
