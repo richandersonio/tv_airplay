@@ -1,12 +1,14 @@
 """YouTube video downloading."""
 
+import json
 import os
+from typing import List, Dict, Any, Optional
 
 from .config import YOUTUBE_CACHE_DIR
 from .conversion import is_cached
 
 
-def download_youtube(url: str) -> str:
+def download_youtube(url: str) -> Optional[str]:
     """Download YouTube video and return local path."""
     import yt_dlp
     import json as json_module
@@ -28,7 +30,7 @@ def download_youtube(url: str) -> str:
                 print(f"   Duration: {int(mins)}:{int(secs):02d}")
 
             info_path = os.path.join(YOUTUBE_CACHE_DIR, f"{video_id}.info.json")
-            with open(info_path, 'w') as f:
+            with open(info_path, 'w', encoding='utf-8') as f:
                 json_module.dump({'id': video_id, 'title': title, 'duration': duration}, f)
 
         except Exception as e:
@@ -68,7 +70,7 @@ def download_youtube(url: str) -> str:
         return None
 
 
-def find_cached_youtube_videos() -> list:
+def find_cached_youtube_videos() -> List[Dict[str, Any]]:
     """Find all cached YouTube videos with their titles."""
     if not os.path.exists(YOUTUBE_CACHE_DIR):
         return []
@@ -84,11 +86,10 @@ def find_cached_youtube_videos() -> list:
             info_file = os.path.join(YOUTUBE_CACHE_DIR, f"{video_id}.info.json")
             if os.path.exists(info_file):
                 try:
-                    import json
-                    with open(info_file) as f:
+                    with open(info_file, encoding='utf-8') as f:
                         info = json.load(f)
                         title = info.get('title', video_id)
-                except:
+                except (json.JSONDecodeError, OSError):
                     pass
 
             if not title:

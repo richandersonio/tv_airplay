@@ -2,6 +2,7 @@
 
 import json
 import os
+from typing import Optional, Dict, List, Any
 
 # Settings
 HTTP_PORT = 8765
@@ -17,7 +18,7 @@ SAMPLE_YOUTUBE_URL = "https://youtube.com/watch?v=yvsoeyqCIU8"
 SAMPLE_YOUTUBE_TITLE = "Sample: Mo Holiday - Nov 27th 2017"
 
 # App info
-APP_VERSION = "1.0.0"
+APP_VERSION = "0.1.0"
 APP_DATE = "Dec 27th, 2025"
 
 # Global state (mutable)
@@ -27,27 +28,27 @@ _state = {
 }
 
 
-def get_current_device():
+def get_current_device() -> Optional[Dict[str, Any]]:
     """Get current selected device."""
     return _state['current_device']
 
 
-def set_current_device(device):
+def set_current_device(device: Optional[Dict[str, Any]]) -> None:
     """Set current selected device."""
     _state['current_device'] = device
 
 
-def get_discovered_devices():
+def get_discovered_devices() -> List[Dict[str, Any]]:
     """Get list of discovered devices."""
     return _state['discovered_devices']
 
 
-def set_discovered_devices(devices):
+def set_discovered_devices(devices: List[Dict[str, Any]]) -> None:
     """Set list of discovered devices."""
     _state['discovered_devices'] = devices
 
 
-def make_json_serializable(obj):
+def make_json_serializable(obj: Any) -> Any:
     """Convert an object to be JSON serializable."""
     if obj is None:
         return None
@@ -64,25 +65,26 @@ def make_json_serializable(obj):
     else:
         try:
             return str(obj)
-        except:
+        except Exception:
             return None
 
 
-def load_config():
+def load_config() -> None:
     """Load saved configuration."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
 
     if os.path.exists(CONFIG_FILE):
         try:
-            with open(CONFIG_FILE) as f:
+            with open(CONFIG_FILE, encoding='utf-8') as f:
                 config = json.load(f)
                 _state['current_device'] = config.get('device')
-                _state['discovered_devices'] = config.get('discovered_devices', [])
-        except:
+                _state['discovered_devices'] = config.get(
+                    'discovered_devices', [])
+        except (json.JSONDecodeError, OSError):
             pass
 
 
-def save_config():
+def save_config() -> None:
     """Save current configuration."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
 
@@ -90,11 +92,11 @@ def save_config():
         'device': make_json_serializable(_state['current_device']),
         'discovered_devices': make_json_serializable(_state['discovered_devices']),
     }
-    with open(CONFIG_FILE, 'w') as f:
+    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2)
 
 
-def save_discovered_devices(devices: list):
+def save_discovered_devices(devices: List[Dict[str, Any]]) -> None:
     """Save discovered devices to config."""
     existing_ips = {d.get('ip') for d in _state['discovered_devices']}
 
@@ -110,9 +112,8 @@ def save_discovered_devices(devices: list):
     save_config()
 
 
-def forget_device():
+def forget_device() -> None:
     """Forget/unpair the current device."""
     _state['current_device'] = None
     save_config()
     print("🔌 Device forgotten")
-

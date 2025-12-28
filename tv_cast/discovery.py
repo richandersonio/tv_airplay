@@ -5,15 +5,13 @@ import concurrent.futures
 import socket
 import subprocess
 import time
-
-from async_upnp_client.aiohttp import AiohttpRequester
-from async_upnp_client.client_factory import UpnpFactory
+from typing import List, Dict, Any, Optional
 
 from .config import get_discovered_devices, set_discovered_devices, save_discovered_devices
 from .utils import get_local_ip, get_local_subnet, ping_host, get_hostname, check_port
 
 
-async def discover_dlna_devices(timeout: int = 5) -> list:
+async def discover_dlna_devices(timeout: int = 5) -> List[Dict[str, Any]]:
     """Discover DLNA Media Renderer devices on the network."""
     from async_upnp_client.search import async_search
 
@@ -27,6 +25,9 @@ async def discover_dlna_devices(timeout: int = 5) -> list:
 
             try:
                 from urllib.parse import urlparse
+                from async_upnp_client.aiohttp import AiohttpRequester
+                from async_upnp_client.client_factory import UpnpFactory
+
                 parsed = urlparse(location)
                 ip = parsed.hostname
                 port = parsed.port or 80
@@ -54,7 +55,7 @@ async def discover_dlna_devices(timeout: int = 5) -> list:
                         print(f"   📺 {name} ({ip})")
                 except Exception:
                     pass
-            except:
+            except (ValueError, AttributeError):
                 pass
 
     try:
@@ -69,7 +70,7 @@ async def discover_dlna_devices(timeout: int = 5) -> list:
     return devices
 
 
-def discover_mdns_devices(timeout: int = 5) -> list:
+def discover_mdns_devices(timeout: int = 5) -> List[Dict[str, Any]]:
     """Discover devices via mDNS/Bonjour."""
     from zeroconf import Zeroconf, ServiceBrowser, ServiceListener
 
@@ -161,7 +162,7 @@ def discover_mdns_devices(timeout: int = 5) -> list:
                     })
                     print(f"   {icon} {friendly_name} ({ip})")
 
-            except Exception:
+            except (AttributeError, ValueError, IndexError):
                 pass
 
         def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
@@ -178,7 +179,7 @@ def discover_mdns_devices(timeout: int = 5) -> list:
         try:
             browser = ServiceBrowser(zc, service_type, listener)
             browsers.append(browser)
-        except:
+        except Exception:
             pass
 
     time.sleep(timeout)
@@ -186,7 +187,7 @@ def discover_mdns_devices(timeout: int = 5) -> list:
     return devices
 
 
-def get_mac_vendor(mac: str) -> str:
+def get_mac_vendor(mac: str) -> Optional[str]:
     """Get vendor name from MAC address prefix."""
     vendors = {
         "00:1A:79": "Tesla",
@@ -215,7 +216,7 @@ def get_mac_vendor(mac: str) -> str:
     return vendors.get(mac_prefix)
 
 
-def scan_arp_table() -> list:
+def scan_arp_table() -> List[Dict[str, str]]:
     """Get devices from the system ARP table."""
     import platform
     import re
@@ -252,7 +253,7 @@ def scan_arp_table() -> list:
     return devices
 
 
-def discover_network_hosts(timeout: int = 10) -> list:
+def discover_network_hosts(timeout: int = 10) -> List[Dict[str, Any]]:
     """Discover all hosts on the local network via ARP + ping sweep."""
 
     devices = []
@@ -332,7 +333,7 @@ def discover_network_hosts(timeout: int = 10) -> list:
                             'hostname': hostname,
                             'castable': False,
                         })
-                except:
+                except Exception:
                     pass
         except concurrent.futures.TimeoutError:
             pass
@@ -343,7 +344,7 @@ def discover_network_hosts(timeout: int = 10) -> list:
     return devices
 
 
-async def discover_all_devices(timeout: int = 8) -> list:
+async def discover_all_devices(timeout: int = 8) -> List[Dict[str, Any]]:
     """Discover all devices on the network (ARP, ping, mDNS, DLNA)."""
 
     print(f"🔍 Scanning network for all devices...")

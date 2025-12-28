@@ -1,10 +1,12 @@
 """Video conversion to HLS format."""
 
+import json
 import os
 import shutil
 import subprocess
+from typing import Tuple, Optional
 
-from .config import HLS_CACHE_DIR, IMAGE_CACHE_DIR, CONFIG_DIR, FFMPEG_THREADS
+from .config import HLS_CACHE_DIR, CONFIG_DIR, FFMPEG_THREADS
 
 
 def get_cache_dir(video_path: str) -> str:
@@ -14,12 +16,13 @@ def get_cache_dir(video_path: str) -> str:
     video_size = os.path.getsize(video_path)
 
     cache_key = f"{video_name}_{video_size}_{int(video_mtime)}"
-    cache_key = "".join(c if c.isalnum() or c in "._-" else "_" for c in cache_key)
+    cache_key = "".join(
+        c if c.isalnum() or c in "._-" else "_" for c in cache_key)
 
     return os.path.join(HLS_CACHE_DIR, cache_key)
 
 
-def is_cached(video_path: str) -> tuple:
+def is_cached(video_path: str) -> Tuple[bool, str]:
     """Check if video is already converted. Returns (is_cached, cache_dir)."""
     cache_dir = get_cache_dir(video_path)
     playlist_path = os.path.join(cache_dir, "playlist.m3u8")
@@ -32,7 +35,7 @@ def is_cached(video_path: str) -> tuple:
     return False, cache_dir
 
 
-def check_video_codec(input_file: str) -> tuple:
+def check_video_codec(input_file: str) -> Tuple[str, float]:
     """Check if video is H.264 and get duration."""
     probe_cmd = [
         "ffprobe", "-v", "error",
@@ -41,19 +44,19 @@ def check_video_codec(input_file: str) -> tuple:
         "-of", "json",
         input_file
     ]
-    result = subprocess.run(probe_cmd, capture_output=True, text=True)
+    result = subprocess.run(
+        probe_cmd, capture_output=True, text=True, check=False)
 
     try:
-        import json
         data = json.loads(result.stdout)
         codec = data.get("streams", [{}])[0].get("codec_name", "")
         duration = float(data.get("format", {}).get("duration", 0))
         return codec, duration
-    except:
-        return "", 0
+    except (json.JSONDecodeError, KeyError, ValueError, IndexError):
+        return "", 0.0
 
 
-def convert_to_hls(input_file: str, output_dir: str = None) -> str:
+def convert_to_hls(input_file: str) -> Optional[str]:
     """Convert video to HLS format for Samsung TV compatibility."""
 
     cached, cache_dir = is_cached(input_file)
@@ -84,7 +87,8 @@ def convert_to_hls(input_file: str, output_dir: str = None) -> str:
             playlist_path
         ]
     else:
-        print(f"🔄 Converting to HLS (using {FFMPEG_THREADS} threads, ultrafast)...")
+        print(
+            f"🔄 Converting to HLS (using {FFMPEG_THREADS} threads, ultrafast)...")
         cmd = [
             "ffmpeg", "-y",
             "-threads", str(FFMPEG_THREADS),
@@ -123,17 +127,20 @@ def convert_to_hls(input_file: str, output_dir: str = None) -> str:
                     parts = time_str.replace("-", "0").split(":")
                     if len(parts) == 3:
                         h, m, s = parts
-                        current_seconds = int(h) * 3600 + int(m) * 60 + float(s)
+                        current_seconds = int(
+                            h) * 3600 + int(m) * 60 + float(s)
 
                         if duration > 0:
-                            percent = min(100, int((current_seconds / duration) * 100))
+                            percent = min(
+                                100, int((current_seconds / duration) * 100))
                             if percent != last_percent:
                                 bar_len = 30
                                 filled = int(bar_len * percent / 100)
                                 bar = "█" * filled + "░" * (bar_len - filled)
-                                print(f"\r   [{bar}] {percent}%", end="", flush=True)
+                                print(f"\r   [{bar}] {percent}%",
+                                      end="", flush=True)
                                 last_percent = percent
-                except:
+                except (ValueError, IndexError):
                     pass
     except KeyboardInterrupt:
         process.kill()
@@ -155,7 +162,7 @@ def convert_to_hls(input_file: str, output_dir: str = None) -> str:
     return playlist_path
 
 
-def image_to_video(image_path: str, duration: int = 10) -> str:
+def image_to_video(image_path: str, duration: int = 10) -> Optional[str]:
     """Convert an image to a video file for streaming."""
 
     image_path = os.path.abspath(image_path)
@@ -167,7 +174,8 @@ def image_to_video(image_path: str, duration: int = 10) -> str:
     image_mtime = os.path.getmtime(image_path)
     image_size = os.path.getsize(image_path)
     cache_key = f"{image_name}_{image_size}_{int(image_mtime)}_{duration}s"
-    cache_key = "".join(c if c.isalnum() or c in "._-" else "_" for c in cache_key)
+    cache_key = "".join(
+        c if c.isalnum() or c in "._-" else "_" for c in cache_key)
     output_path = os.path.join(image_video_cache, f"{cache_key}.mp4")
 
     if os.path.exists(output_path):
@@ -199,7 +207,7 @@ def image_to_video(image_path: str, duration: int = 10) -> str:
     return output_path
 
 
-def clear_cache():
+def clear_cache() -> None:
     """Clear all cached data (HLS conversions, YouTube downloads, image videos)."""
     cleared = False
 
@@ -211,7 +219,8 @@ def clear_cache():
 
     from .config import YOUTUBE_CACHE_DIR
     if os.path.exists(YOUTUBE_CACHE_DIR):
-        count = len([f for f in os.listdir(YOUTUBE_CACHE_DIR) if f.endswith('.mp4')])
+        count = len([f for f in os.listdir(
+            YOUTUBE_CACHE_DIR) if f.endswith('.mp4')])
         if count > 0:
             shutil.rmtree(YOUTUBE_CACHE_DIR)
             print(f"🗑️  Cleared {count} YouTube download(s)")
@@ -227,4 +236,3 @@ def clear_cache():
 
     if not cleared:
         print("📁 Cache is already empty")
-

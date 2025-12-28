@@ -1,6 +1,7 @@
 """Entry point for running as a module: python -m tv_cast"""
 
 import signal
+from typing import Any
 
 from .config import load_config
 from .casting import cleanup_on_exit
@@ -9,7 +10,7 @@ from .cli import run_cli
 _cleanup_done = False
 
 
-def signal_handler(sig, frame):
+def signal_handler(sig: int, frame: Any) -> None:
     """Handle Ctrl+C and termination signals."""
     global _cleanup_done
     if not _cleanup_done:
@@ -19,7 +20,7 @@ def signal_handler(sig, frame):
     exit(0)
 
 
-def main():
+def main() -> None:
     """Main entry point."""
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
@@ -40,4 +41,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

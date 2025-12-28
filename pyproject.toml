@@ -1,6 +1,6 @@
 [project]
 name = "tv-cast"
-version = "1.0.0"
+version = "0.1.0"
 description = "Samsung TV Video Caster - Cast videos to your Samsung TV via DLNA"
 readme = "README.md"
 requires-python = ">=3.11"

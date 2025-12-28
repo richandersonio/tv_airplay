@@ -15,7 +15,7 @@ from .discovery import discover_dlna_devices, discover_all_devices
 from .menu import main_menu, playback_menu_loop, device_menu
 
 
-def show_status():
+def show_status() -> None:
     """Show current device status."""
     current_device = get_current_device()
 
@@ -50,7 +50,7 @@ def show_status():
         print(f"\n   Use --clear-cache to clear all")
 
 
-def list_devices_cli():
+def list_devices_cli() -> None:
     """List all discovered devices."""
     discovered_devices = get_discovered_devices()
     current_device = get_current_device()
@@ -75,7 +75,7 @@ def list_devices_cli():
             print(f"   {dev.get('ip'):15}  {dev.get('name', 'Unknown')}")
 
 
-async def scan_devices_cli():
+async def scan_devices_cli() -> None:
     """Scan for cast-capable devices (CLI mode)."""
     print("🔍 Scanning for cast-capable TVs...")
     devices = await discover_dlna_devices(timeout=5)
@@ -91,7 +91,7 @@ async def scan_devices_cli():
         print("   Make sure your TV is on and connected to the same network")
 
 
-async def scan_all_devices_cli():
+async def scan_all_devices_cli() -> None:
     """Scan for all network devices (CLI mode)."""
     devices = await discover_all_devices(timeout=8)
 
@@ -103,7 +103,7 @@ async def scan_all_devices_cli():
             print("   Use --device IP to select one")
 
 
-def set_device_by_ip(ip: str):
+def set_device_by_ip(ip: str) -> None:
     """Set the current device by IP address."""
     discovered_devices = get_discovered_devices()
 
@@ -126,7 +126,7 @@ def set_device_by_ip(ip: str):
     print("   (Device will be fully discovered on first connection)")
 
 
-def cast_image_cli(image_path: str, duration: int):
+def cast_image_cli(image_path: str, duration: int) -> None:
     """Cast an image from CLI."""
     current_device = get_current_device()
 
@@ -150,7 +150,7 @@ def cast_image_cli(image_path: str, duration: int):
         print("❌ Failed to convert image")
 
 
-def run_cli():
+def run_cli() -> None:
     """Run the command-line interface."""
     load_config()
 
@@ -225,7 +225,6 @@ Examples:
     elif args.device:
         set_device_by_ip(args.device)
     elif args.select_device:
-        from .discovery import discover_dlna_devices
         asyncio.run(device_menu())
     elif args.forget:
         forget_device()
@@ -246,7 +245,7 @@ Examples:
         run_interactive()
 
 
-def run_interactive():
+def run_interactive() -> None:
     """Run the interactive menu loop."""
     while True:
         try:

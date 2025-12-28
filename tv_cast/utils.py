@@ -3,20 +3,20 @@
 import os
 import socket
 import subprocess
+from typing import Optional, Dict, Any
 
 
-def get_local_ip():
+def get_local_ip() -> str:
     """Get local IP address."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-    finally:
-        s.close()
-    return ip
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect(('8.8.8.8', 80))
+            return s.getsockname()[0]
+        except OSError:
+            return '127.0.0.1'
 
 
-def get_local_subnet():
+def get_local_subnet() -> str:
     """Get the local subnet for scanning."""
     local_ip = get_local_ip()
     parts = local_ip.split('.')
@@ -37,15 +37,13 @@ def format_size(size_bytes: int) -> str:
 
 def check_port(ip: str, port: int, timeout: float = 0.3) -> bool:
     """Check if a port is open on a host."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(timeout)
-    try:
-        result = sock.connect_ex((ip, port))
-        return result == 0
-    except:
-        return False
-    finally:
-        sock.close()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(timeout)
+        try:
+            result = sock.connect_ex((ip, port))
+            return result == 0
+        except OSError:
+            return False
 
 
 def ping_host(ip: str, timeout: float = 0.3) -> bool:
@@ -58,18 +56,19 @@ def ping_host(ip: str, timeout: float = 0.3) -> bool:
         cmd = ["ping", "-c", "1", "-W", str(int(timeout * 1000)), ip]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, timeout=timeout + 0.5)
+        result = subprocess.run(
+            cmd, capture_output=True, timeout=timeout + 0.5, check=False)
         return result.returncode == 0
-    except:
+    except (subprocess.TimeoutExpired, OSError):
         return False
 
 
-def get_hostname(ip: str) -> str:
+def get_hostname(ip: str) -> Optional[str]:
     """Try to resolve hostname for an IP."""
     try:
         hostname, _, _ = socket.gethostbyaddr(ip)
         return hostname
-    except:
+    except OSError:
         return None
 
 
@@ -121,7 +120,7 @@ COMMON_PORTS = {
 }
 
 
-def get_device_icon(device: dict) -> str:
+def get_device_icon(device: Dict[str, Any]) -> str:
     """Get an icon for a device based on its type."""
     device_type = device.get('type', 'unknown')
     icons = {
@@ -163,4 +162,3 @@ def get_device_icon(device: dict) -> str:
         'unknown': '❓',
     }
     return icons.get(device_type, '📱')
-

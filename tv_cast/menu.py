@@ -2,9 +2,10 @@
 
 import asyncio
 import os
+from typing import List, Tuple, Optional
 
 from .config import (
-    APP_DATE, CONFIG_DIR, HLS_CACHE_DIR, YOUTUBE_CACHE_DIR,
+    APP_VERSION, APP_DATE, CONFIG_DIR, HLS_CACHE_DIR, YOUTUBE_CACHE_DIR,
     SAMPLE_YOUTUBE_URL, SAMPLE_YOUTUBE_TITLE,
     get_current_device, set_current_device, save_config, save_discovered_devices,
 )
@@ -15,7 +16,9 @@ from .casting import cast_video, stop_playback
 from .discovery import discover_dlna_devices, discover_all_devices
 
 
-def find_video_files(directory: str = ".") -> list:
+
+
+def find_video_files(directory: str = ".") -> List[Tuple[str, int, bool]]:
     """Find all video files in directory."""
     video_extensions = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v', '.ts'}
     videos = []
@@ -33,7 +36,7 @@ def find_video_files(directory: str = ".") -> list:
     return videos
 
 
-def find_image_files(directory: str = ".") -> list:
+def find_image_files(directory: str = ".") -> List[Tuple[str, int]]:
     """Find all image files in directory."""
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
     images = []
@@ -49,7 +52,7 @@ def find_image_files(directory: str = ".") -> list:
     return images
 
 
-def select_youtube_submenu() -> str:
+def select_youtube_submenu() -> Optional[str]:
     """Show YouTube selection submenu with sample option."""
     print()
     print("   " + "-" * 40)
@@ -88,7 +91,7 @@ def select_youtube_submenu() -> str:
             return None
 
 
-def select_image_submenu() -> str:
+def select_image_submenu() -> Optional[str]:
     """Show image selection submenu."""
     print()
     print("   " + "-" * 40)
@@ -251,7 +254,7 @@ def main_menu() -> str:
     current_device = get_current_device()
 
     print("=" * 60)
-    print(f"📺 Samsung TV Caster — {APP_DATE}")
+    print(f"📺 Samsung TV Caster v{APP_VERSION} — {APP_DATE}")
     print("=" * 60)
 
     if current_device:
@@ -279,7 +282,7 @@ def main_menu() -> str:
         try:
             choice = input("Select option: ").strip().lower()
 
-            if choice == 'q':
+            if not choice or choice == 'q':
                 return 'QUIT'
 
             if choice == '1':
@@ -293,14 +296,14 @@ def main_menu() -> str:
 
             print("   Please enter a valid option")
 
-        except ValueError:
+        except (ValueError, EOFError):
             print("   Please enter a valid option")
         except KeyboardInterrupt:
             print()
             return 'QUIT'
 
 
-def playback_menu_loop():
+def playback_menu_loop() -> None:
     """Run the playback menu loop."""
     current_device = get_current_device()
 
@@ -338,7 +341,7 @@ def playback_menu_loop():
             continue
 
 
-async def device_menu() -> str:
+async def device_menu() -> Optional[str]:
     """Show the device management menu."""
     current_device = get_current_device()
 

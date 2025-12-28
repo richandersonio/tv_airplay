@@ -4,6 +4,7 @@ import asyncio
 import http.server
 import os
 import threading
+from typing import Optional, Tuple, Any
 
 from async_upnp_client.aiohttp import AiohttpRequester
 from async_upnp_client.client_factory import UpnpFactory
@@ -30,7 +31,7 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
-async def get_av_transport():
+async def get_av_transport() -> Tuple[Optional[Any], Optional[str]]:
     """Connect to selected device and get AVTransport service."""
     current_device = get_current_device()
 
@@ -128,7 +129,8 @@ async def _scan_and_offer_alternatives(failed_ip: str, failed_name: str) -> bool
 
     try:
         alternative_devices = await discover_dlna_devices(timeout=4)
-        alternatives = [d for d in alternative_devices if d.get('ip') != failed_ip]
+        alternatives = [
+            d for d in alternative_devices if d.get('ip') != failed_ip]
 
         if not alternatives:
             print("   No other TVs found on the network.")
@@ -146,7 +148,8 @@ async def _scan_and_offer_alternatives(failed_ip: str, failed_name: str) -> bool
         print()
 
         try:
-            choice = input(f"Switch to a different TV? (1-{len(alternatives)}, or 0 to cancel): ").strip()
+            choice = input(
+                f"Switch to a different TV? (1-{len(alternatives)}, or 0 to cancel): ").strip()
 
             if choice == '0' or choice.lower() in ('', 'n', 'no', 'q'):
                 print("   Keeping current device selection.")
@@ -158,7 +161,8 @@ async def _scan_and_offer_alternatives(failed_ip: str, failed_name: str) -> bool
                 set_current_device(selected)
                 save_config()
                 save_discovered_devices(alternatives)
-                print(f"\n✅ Switched to: {selected.get('name')} ({selected.get('ip')})")
+                print(
+                    f"\n✅ Switched to: {selected.get('name')} ({selected.get('ip')})")
                 return True
             else:
                 print("   Invalid selection. Keeping current device.")
@@ -174,7 +178,7 @@ async def _scan_and_offer_alternatives(failed_ip: str, failed_name: str) -> bool
         return False
 
 
-async def stop_playback():
+async def stop_playback() -> bool:
     """Stop current playback on TV."""
     current_device = get_current_device()
     if not current_device:
@@ -198,7 +202,7 @@ async def stop_playback():
     return False
 
 
-async def cast_video(video_path: str, duration: int = 0):
+async def cast_video(video_path: str, duration: int = 0) -> bool:
     """Cast video to Samsung TV."""
     current_device = get_current_device()
 
@@ -219,7 +223,7 @@ async def cast_video(video_path: str, duration: int = 0):
     video_name = os.path.basename(video_path)
     print(f"\n🎬 Video: {video_name}")
 
-    playlist_path = convert_to_hls(video_path, None)
+    playlist_path = convert_to_hls(video_path)
     if not playlist_path:
         return False
 
@@ -261,7 +265,7 @@ async def cast_video(video_path: str, duration: int = 0):
         try:
             stop = av_transport.action('Stop')
             await stop.async_call(InstanceID=0)
-        except:
+        except Exception:
             pass
 
         print("\n🎬 Loading video...")
@@ -303,7 +307,7 @@ async def cast_video(video_path: str, duration: int = 0):
             stop = av_transport.action('Stop')
             await stop.async_call(InstanceID=0)
             print("   ✅ Stopped")
-        except:
+        except Exception:
             pass
         return True
 
@@ -318,7 +322,7 @@ async def cast_video(video_path: str, duration: int = 0):
         server.shutdown()
 
 
-def cleanup_on_exit():
+def cleanup_on_exit() -> None:
     """Stop playback when exiting the app."""
     current_device = get_current_device()
 
@@ -362,4 +366,3 @@ def cleanup_on_exit():
         print("   ✅ Stopped")
     except Exception:
         pass
-
